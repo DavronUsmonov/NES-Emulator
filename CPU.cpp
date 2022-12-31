@@ -35,7 +35,15 @@ void CPU::write(uint16_t address, uint8_t data) {
 }
 
 void CPU::cycle() {
-    
+	if(cycles == 0) {
+		opcode = read(pc);
+		pc++;
+		cycles = table[opcode].cycles;
+		uint8_t add1 = (this->*table[opcode].addr_mode)();
+		uint8_t add2 = (this->*table[opcode].operate)();
+		cycles += (add1 & add2);
+	}
+	cycles--;
 }
 
 void CPU::reset() {
@@ -61,3 +69,64 @@ uint8_t CPU::getFlag(FLAGS flag) {
 void CPU::setFlag(FLAGS flag, bool t) {
 
 }
+
+uint8_t CPU::ACC() {
+	fetched = A;
+	return 0;
+}
+
+uint8_t CPU::IMP() {
+	fetched = A;
+	return 0;
+}
+
+uint8_t CPU::ABS() {
+	addr_abs = (read(pc) << 8) | read(pc+1);
+	pc += 2;
+	return 1;
+}
+
+uint8_t CPU::ABX() {
+	addr_abs = ((read(pc) << 8) | read(pc+1)) + X;
+	pc += 2;
+	return 1;
+}
+
+uint8_t CPU::ABY() {
+	addr_abs = ((read(pc) << 8) | read(pc+1)) + Y;
+	pc += 2;
+	return 1;
+}
+
+uint8_t CPU::IMM() {
+	addr_abs = pc++;
+	return 0;
+}
+
+uint8_t CPU::ZP0() {
+	addr_abs = read(pc);
+	addr_abs &= 0x00FF;
+	pc++;
+	return 0;
+}
+
+uint8_t CPU::ZPX() {
+	addr_abs = read(pc) + X;
+	addr_abs &= 0x00FF;
+	pc++;
+	return 0;
+}
+
+uint8_t CPU::ZPY() {
+	addr_abs = read(pc) + Y;
+	addr_abs &= 0x00FF;
+	pc++;
+	return 0;
+}
+
+uint8_t CPU::REL() {
+	
+}
+
+
+
